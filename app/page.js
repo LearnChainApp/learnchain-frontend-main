@@ -1,13 +1,13 @@
 "use client"
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { User, Lock, Wallet } from "lucide-react";
+import { User, Lock, Wallet, Terminal } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -17,23 +17,100 @@ import {
   DialogTitle,
   DialogTrigger
 } from "@/components/ui/dialog";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
 export default function Login() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [signUpData, setSignUpData] = useState({ username: '', name: '', password: '', walletAddress: '' });
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState('');
+  const [isSuccess, setIsSuccess] = useState(null);
 
-  const handleLogin = (e) => {
+  useEffect(() => {
+    // Avoid hydration mismatch by ensuring client-side rendering
+    setIsSuccess(null);
+    setMessage('');
+  }, []);
+
+  const handleLogin = async (e) => {
     e.preventDefault();
-    // Add your login logic here
-    console.log('Username:', username);
-    console.log('Password:', password);
+    setLoading(true);
+    setMessage('');
+    setIsSuccess(null);
+
+    try {
+      const response = await fetch("https://learnchain-backend.onrender.com/api/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          uName: username,
+          pass: password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Save token to localStorage
+        localStorage.setItem("token", data.token);
+        setMessage("Login successful! Redirecting to marketplace...");
+        setIsSuccess(true);
+        setTimeout(() => {
+          // Redirect to marketplace page after 2 seconds
+          window.location.href = "/marketplace";
+        }, 2000);
+      } else {
+        setMessage(data.error || "Login failed. Please try again.");
+        setIsSuccess(false);
+      }
+    } catch (error) {
+      setMessage("An error occurred. Please try again later.");
+      setIsSuccess(false);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleSignUp = (e) => {
+  const handleSignUp = async (e) => {
     e.preventDefault();
-    // Add your signup logic here
-    console.log('SignUp Data:', signUpData);
+    setLoading(true);
+    setMessage('');
+    setIsSuccess(null);
+
+    try {
+      const response = await fetch("https://learnchain-backend.onrender.com/api/users", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          uName: signUpData.username,
+          name: signUpData.name,
+          pass: signUpData.password,
+          walletAddress: signUpData.walletAddress,
+        }),
+      });
+
+      if (response.ok) {
+        setMessage("Sign up successful! Redirecting to login...");
+        setIsSuccess(true);
+        setTimeout(() => {
+          // Redirect to login page after 2 seconds
+          window.location.href = "/";
+        }, 2000);
+      } else {
+        setMessage("Sign up failed. Please try again.");
+        setIsSuccess(false);
+      }
+    } catch (error) {
+      setMessage("An error occurred. Please try again later.");
+      setIsSuccess(false);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -78,6 +155,14 @@ export default function Login() {
                 />
               </div>
             </div>
+            {loading && <p className="text-center text-gray-500">Submitting...</p>}
+            {message && (
+              <Alert className="mt-4">
+                <Terminal className="h-4 w-4" />
+                <AlertTitle>{isSuccess ? "Success!" : "Error"}</AlertTitle>
+                <AlertDescription>{message}</AlertDescription>
+              </Alert>
+            )}
             <Button type="submit" className="w-full bg-black hover:bg-gray-800 text-white">
               Login
             </Button>
@@ -101,7 +186,7 @@ export default function Login() {
               </DialogHeader>
               <form onSubmit={handleSignUp} className="space-y-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="signUpUsername" className="text-gray-700">Username</Label>
+                  <Label htmlFor="signUpUsername" className="text-gray-700">Username*</Label>
                   <Input
                     id="signUpUsername"
                     type="text"
@@ -111,7 +196,7 @@ export default function Login() {
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="signUpName" className="text-gray-700">Name</Label>
+                  <Label htmlFor="signUpName" className="text-gray-700">Name*</Label>
                   <Input
                     id="signUpName"
                     type="text"
@@ -121,7 +206,7 @@ export default function Login() {
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="signUpPassword" className="text-gray-700">Password</Label>
+                  <Label htmlFor="signUpPassword" className="text-gray-700">Password*</Label>
                   <Input
                     id="signUpPassword"
                     type="password"
@@ -131,7 +216,7 @@ export default function Login() {
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="walletAddress" className="text-gray-700">Wallet Address</Label>
+                  <Label htmlFor="walletAddress" className="text-gray-700">Wallet Address*</Label>
                   <Input
                     id="walletAddress"
                     type="text"
@@ -140,6 +225,14 @@ export default function Login() {
                     required
                   />
                 </div>
+                {loading && <p className="text-center text-gray-500">Submitting...</p>}
+                {message && (
+                  <Alert className="mt-4">
+                    <Terminal className="h-4 w-4" />
+                    <AlertTitle>{isSuccess ? "Success!" : "Error"}</AlertTitle>
+                    <AlertDescription>{message}</AlertDescription>
+                  </Alert>
+                )}
                 <DialogFooter>
                   <Button type="submit" className="w-full bg-black hover:bg-gray-800 text-white">
                     Sign Up
