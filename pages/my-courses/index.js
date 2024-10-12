@@ -74,7 +74,16 @@ function MyCourses() {
         });
 
         if (response.status === 200) {
-          setCourses(response.data);
+          const tokenCourses = response.data;
+          const courseDetails = await Promise.all(tokenCourses.map(async (course) => {
+            const courseResponse = await axios.get(`https://learnchain-backend.onrender.com/api/content/${course.courseUUID}`, {
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem('token')}`,
+              },
+            });
+            return { ...course, ...courseResponse.data };
+          }));
+          setCourses(courseDetails);
         } else {
           console.error('Failed to fetch user courses', response);
         }
@@ -140,8 +149,8 @@ function MyCourses() {
       {/* Courses Section */}
       <section className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {courses.map((course) => (
-            <Card key={course.id} className="bg-white shadow-md hover:shadow-lg transition-shadow duration-300">
+          {courses.map((course, index) => (
+            <Card key={index} className="bg-white shadow-md hover:shadow-lg transition-shadow duration-300">
               <CardHeader className="pb-2">
                 <div className="relative w-full h-40 mb-4">
                   <Image src="/images/31343C.png" alt="Course Placeholder" layout="fill" objectFit="cover" className="rounded-t" />
@@ -155,7 +164,7 @@ function MyCourses() {
                 <Button
                   variant="outline"
                   className="mt-4 border-black text-black hover:bg-gray-200"
-                  onClick={() => setSelectedCourse(course)}
+                  onClick={() => router.push(`/my-courses/${course.courseUUID}`)}
                 >
                   View Details
                 </Button>
@@ -164,25 +173,6 @@ function MyCourses() {
           ))}
         </div>
       </section>
-
-      {/* Course Details Modal */}
-      {selectedCourse && (
-        <Dialog open={true} onOpenChange={() => setSelectedCourse(null)}>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle className="text-2xl font-bold text-gray-900">{selectedCourse.title}</DialogTitle>
-              <div className="relative w-full h-40 my-4">
-                <Image src="/images/31343C.png" alt="Course Placeholder" layout="fill" objectFit="cover" className="rounded" />
-              </div>
-            </DialogHeader>
-            <div className="mt-4">
-              <p className="text-sm text-gray-700 my-4">{selectedCourse.description}</p>
-              <p className="text-sm text-gray-800 font-semibold mb-2">Author: {selectedCourse.author}</p>
-              <p className="text-lg font-bold text-gray-900 mb-4">Price: {selectedCourse.price} Arbitrum</p>
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
 
       {/* Footer */}
       <footer className="bg-white shadow-inner py-6 mt-8">
