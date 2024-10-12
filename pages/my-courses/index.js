@@ -6,18 +6,19 @@ import { withAuth } from '@/components/withAuth';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Menu, X, PlusCircle, LogOut } from 'lucide-react';
+import { Menu, X, LogOut } from 'lucide-react';
 import Image from 'next/image';
 import axios from 'axios';
 import { ethers } from 'ethers';
 
-function MyLibrary() {
+function MyCourses() {
   const [userName, setUserName] = useState('');
   const [courses, setCourses] = useState([]);
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [account, setAccount] = useState<string | null>(null);
-  const [signer, setSigner] = useState<ethers.Signer | null>(null);
+  const [account, setAccount] = useState(null);
+  const [signer, setSigner] = useState(null);
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
@@ -33,7 +34,7 @@ function MyLibrary() {
           const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
           if (accounts && accounts.length > 0) {
             setAccount(accounts[0]);
-            const provider = new ethers.providers.Web3Provider(window.ethereum);
+            const provider = new ethers.BrowserProvider(window.ethereum);
             const signer = await provider.getSigner();
             setSigner(signer);
           } else {
@@ -41,46 +42,20 @@ function MyLibrary() {
           }
         } catch (err) {
           console.error(err);
+        } finally {
+          setLoading(false);
         }
       } else {
         console.error('MetaMask is not installed');
+        setLoading(false);
       }
     };
 
     connectWallet();
-  }, [setAccount, setSigner]);
-
-  // Fetch user-owned courses using signature verification
-  const fetchUserCourses = async () => {
-    if (!signer || !account) {
-      console.error('Account not connected or signer not available');
-      return;
-    }
-    try {
-      const signature = await signer.signMessage('Please sign this message to verify your ownership');
-      const token = localStorage.getItem('token');
-
-      const response = await axios.post('https://learnchain-backend.onrender.com/api/tokens', {
-        signature,
-      }, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (response.status === 200) {
-        setCourses(response.data);
-      } else {
-        console.error('Failed to fetch user courses', response);
-      }
-    } catch (error) {
-      console.error('Error fetching user courses:', error);
-    }
-  };
+  }, []);
 
   useEffect(() => {
-    fetchUserCourses();
-  useEffect(() => {
+    // Fetch user-owned courses using signature verification
     const fetchUserCourses = async () => {
       if (!signer || !account) {
         console.error('Account not connected or signer not available');
@@ -91,7 +66,7 @@ function MyLibrary() {
         const token = localStorage.getItem('token');
 
         const response = await axios.post('https://learnchain-backend.onrender.com/api/tokens', {
-          signature,
+          "signature": signature
         }, {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -108,7 +83,9 @@ function MyLibrary() {
       }
     };
 
-    fetchUserCourses();
+    if (signer && account) {
+      fetchUserCourses();
+    }
   }, [signer, account]);
 
   const handleLogout = () => {
@@ -118,6 +95,14 @@ function MyLibrary() {
     router.push('/');
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p>Loading...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-100">
       {/* Navbar */}
@@ -126,12 +111,6 @@ function MyLibrary() {
           <Image src="/images/learnchain.svg" alt="LearnChain Logo" width={30} height={30} />
         </div>
         <div className="hidden md:flex items-center gap-4">
-          <Button variant="ghost" className="text-black">
-            <Menu className="h-5 w-5 mr-2" /> myLibrary
-          </Button>
-          <Button variant="ghost" className="text-black">
-            <PlusCircle className="h-5 w-5 mr-2" /> Create a Course
-          </Button>
           <Button onClick={handleLogout} variant="ghost" className="text-black">
             <LogOut className="h-5 w-5 mr-2" /> Logout
           </Button>
@@ -146,12 +125,6 @@ function MyLibrary() {
       {/* Mobile Menu */}
       {isMenuOpen && (
         <div className="md:hidden bg-white shadow-md px-6 py-4">
-          <Button variant="ghost" className="w-full text-black mb-2">
-            <myLibrary className="h-5 w-5 mr-2" /> myLibrary
-          </Button>
-          <Button variant="ghost" className="w-full text-black mb-2">
-            <PlusCircle className="h-5 w-5 mr-2" /> Create a Course
-          </Button>
           <Button onClick={handleLogout} variant="ghost" className="w-full text-black">
             <LogOut className="h-5 w-5 mr-2" /> Logout
           </Button>
@@ -163,7 +136,7 @@ function MyLibrary() {
         <h1 className="text-4xl font-bold mb-4">Welcome to LearnChain, {userName}!</h1>
         <p className="text-lg text-gray-600">Explore the courses you purchased in the blockchain ecosystem.</p>
       </header>
- 
+
       {/* Courses Section */}
       <section className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
@@ -221,4 +194,4 @@ function MyLibrary() {
   );
 }
 
-export default withAuth(MyLibrary);
+export default withAuth(MyCourses);

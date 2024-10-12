@@ -51,8 +51,8 @@ function Marketplace() {
           <Image src="/images/learnchain.svg" alt="LearnChain Logo" width={30} height={30} />
         </div>
         <div className="hidden md:flex items-center gap-4">
-          <Button variant="ghost" className="text-black">
-            <Library className="h-5 w-5 mr-2" /> Library
+          <Button variant="ghost" className="text-black" onClick={() => router.push('/my-courses')}>
+            <Library className="h-5 w-5 mr-2" /> My Courses
           </Button>
           <Button variant="ghost" className="text-black">
             <PlusCircle className="h-5 w-5 mr-2" /> Create a Course
