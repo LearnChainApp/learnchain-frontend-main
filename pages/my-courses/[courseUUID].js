@@ -1,7 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/router'; // Change import to useRouter from next/router
+import { useRouter } from 'next/router';
+import Navbar from '@/components/navbar';
+import Footer from '@/components/Footer';
 import { withAuth } from '@/components/withAuth';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -58,6 +60,8 @@ function CourseDetail() {
 
   return (
     <div className="min-h-screen bg-gray-100">
+      {/* Navbar */}
+      <Navbar />
       <header className="container mx-auto px-4 py-8 text-center">
         <h1 className="text-4xl font-bold mb-4">Detalhes do curso</h1>
       </header>
@@ -96,11 +100,8 @@ function CourseDetail() {
         </div>
       </section>
 
-      <footer className="bg-white shadow-inner py-6 mt-8">
-        <div className="container mx-auto text-center text-gray-600">
-          &copy; {new Date().getFullYear()} LearnChain. All rights reserved.
-        </div>
-      </footer>
+      {/* Footer */}
+      <Footer />
     </div>
   );
 }

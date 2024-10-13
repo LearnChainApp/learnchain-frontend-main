@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Navbar from '@/components/navbar';
+import Footer from '@/components/Footer';
 import { withAuth } from '@/components/withAuth';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -115,30 +117,7 @@ function MyCourses() {
   return (
     <div className="min-h-screen bg-gray-100">
       {/* Navbar */}
-      <nav className="bg-white shadow-md px-6 py-4 flex justify-between items-center">
-        <div className="flex items-center">
-          <Image src="/images/learnchain.svg" alt="LearnChain Logo" width={30} height={30} />
-        </div>
-        <div className="hidden md:flex items-center gap-4">
-          <Button onClick={handleLogout} variant="ghost" className="text-black">
-            <LogOut className="h-5 w-5 mr-2" /> Logout
-          </Button>
-        </div>
-        <div className="md:hidden">
-          <Button onClick={() => setIsMenuOpen(!isMenuOpen)} variant="ghost">
-            {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </Button>
-        </div>
-      </nav>
-
-      {/* Mobile Menu */}
-      {isMenuOpen && (
-        <div className="md:hidden bg-white shadow-md px-6 py-4">
-          <Button onClick={handleLogout} variant="ghost" className="w-full text-black">
-            <LogOut className="h-5 w-5 mr-2" /> Logout
-          </Button>
-        </div>
-      )}
+      <Navbar handleLogout={handleLogout} />
 
       {/* Header */}
       <header className="container mx-auto px-4 py-8 text-center">
@@ -175,11 +154,7 @@ function MyCourses() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-white shadow-inner py-6 mt-8">
-        <div className="container mx-auto text-center text-gray-600">
-          &copy; {new Date().getFullYear()} LearnChain. All rights reserved.
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }
